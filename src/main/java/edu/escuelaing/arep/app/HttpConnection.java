@@ -14,6 +14,13 @@ public class HttpConnection {
     private static final String USER_AGENT = "Mozilla/5.0 Chrome/51.0.2704.103 Safari/537.36";
     private static final String GET_URL = "https://www.omdbapi.com/?apikey=1f40ad27&t=";
 
+    /**
+     * Realiza una solicitud HTTP GET a una API para obtener datos de una película.
+     *
+     * @param movie Título de la película para buscar en la API.
+     * @return Respuesta de la API en formato JSON.
+     * @throws IOException Si ocurre un error en la comunicación con la API.
+     */
     public String getMovieData(String movie) throws IOException {
         URL obj = new URL(GET_URL + movie);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

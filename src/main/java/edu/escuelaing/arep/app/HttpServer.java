@@ -13,6 +13,11 @@ public class HttpServer {
     private static HttpConnection httpConnection = new HttpConnection();
     private static HashMap<String, String> cache = new HashMap<String, String>();
 
+    /**
+     * Método principal para iniciar el servidor HTTP.
+     *
+     * @throws IOException Si ocurre un error al configurar o aceptar conexiones.
+     */
     public static void main(String[] args) throws IOException {
 
         ServerSocket serverSocket = null;
@@ -65,6 +70,14 @@ public class HttpServer {
         serverSocket.close();
     }
 
+
+    /**
+     * Obtiene información de una película desde el caché o desde el servicio externo.
+     *
+     * @param movieTitle Título de la película a buscar.
+     * @return Respuesta HTTP con la información de la película.
+     * @throws IOException Si ocurre un error al obtener la información.
+     */
     private static String getHello(String movieTitle) throws IOException {
         if (cache.containsKey(movieTitle)) {
             return "HTTP/1.1 200 OK"
@@ -78,7 +91,11 @@ public class HttpServer {
                     + "\r\n" + formatMovieData(movieData);
         }
     }
-
+    /**
+     * Retorna una página HTML con el formulario de búsqueda de películas.
+     *
+     * @return Respuesta HTTP con la página de inicio.
+     */
 
     private static String formatMovieData(String movieData) {
         JsonObject jsonObject = JsonParser.parseString(movieData).getAsJsonObject();

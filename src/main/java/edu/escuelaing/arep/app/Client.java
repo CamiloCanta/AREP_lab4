@@ -2,6 +2,9 @@ package edu.escuelaing.arep.app;
 
 import java.io.IOException;
 
+/**
+ * Clase de prueba que simula múltiples hilos realizando solicitudes al servidor HTTP.
+ */
 public class Client {
 
     public static void main(String[] args) {
@@ -18,7 +21,11 @@ public class Client {
             thread.start();
         }
     }
-
+    /**
+     * Realiza pruebas concurrentes al servidor.
+     *
+     * @throws IOException Si ocurre un error en la comunicación con el servidor.
+     */
     public static void testServerFunctionality() throws IOException {
         HttpConnection httpConnection = new HttpConnection();
 
