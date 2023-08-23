@@ -1,4 +1,4 @@
-# TALLER 1: APLICACIONES DISTRIBUIDAS (HTTP, SOCKETS, HTML, JS, MAVEN, GIT)
+# TALLER 1: APLICACIONES DISTRIBUIDAS (HTTP, SOCKETS, HTML, JS, MAVEN, GIT) - Camilo Cantillo T
 ## Buscador de Películas - App web para consultar información de películas de cine.
 
 ### Inicialización:
@@ -28,9 +28,11 @@ mvn exec:java
 ```
 http://localhost:35000
 ```
-4. Una vez en la página podemos realizar busquedas de las peliculas
+4. Una vez en la página podemos realizar busquedas de las peliculas:
+   
 ![img.png](img.png)
-5. Así se verá cuando se realice una consulta
+
+5. Así se verá cuando se realice una consulta:
 ![img_1.png](img_1.png)
 
 ### Correr los tests
