@@ -29,10 +29,14 @@ mvn exec:java
 http://localhost:35000
 ```
 4. Una vez en la página podemos realizar busquedas de las peliculas:
+
    
 ![img.png](img.png)
 
+
 5. Así se verá cuando se realice una consulta:
+
+   
 ![img_1.png](img_1.png)
 
 ### Correr los tests
