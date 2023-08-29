@@ -1,23 +1,17 @@
 package edu.escuelaing.arep.app;
-
-import java.net.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.HashMap;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class HttpServer {
 
-    private static HttpConnection httpConnection = new HttpConnection();
-    private static HashMap<String, String> cache = new HashMap<String, String>();
-
-    /**
-     * Método principal para iniciar el servidor HTTP.
-     *
-     * @throws IOException Si ocurre un error al configurar o aceptar conexiones.
-     */
     public static void main(String[] args) throws IOException {
 
         ServerSocket serverSocket = null;
@@ -30,7 +24,7 @@ public class HttpServer {
         Socket clientSocket = null;
         while (!serverSocket.isClosed()) {
             try {
-                System.out.println("Operando Buscador de Películas ...");
+                System.out.println("Operando APLICACIONES DISTRIBUIDAS EN INTERNET ...");
                 clientSocket = serverSocket.accept();
             } catch (IOException e) {
                 System.err.println("Accept failed.");
@@ -49,16 +43,40 @@ public class HttpServer {
                 if (firstLine) {
                     firstLine = false;
                     uriString = inputLine.split(" ")[1];
+
                 }
                 if (!in.ready()) {
                     break;
                 }
             }
             System.out.println("URI: " + uriString);
-            if (uriString.split("=").length > 1) {
-                outputLine = getHello(uriString.split("=")[1]);
-            } else if (uriString.startsWith("/movie")) {
-                outputLine = "";
+            String responseBody = "";
+
+            if (uriString != null && uriString.equals("/")) {
+                responseBody = getIndexResponse();
+                outputLine = getResponse(responseBody);
+            } else if (uriString != null && !getFile(uriString).equals("Not Found")) {
+                responseBody = getFile(uriString);
+                outputLine = getResponse(responseBody);
+            } else if (uriString != null && uriString.split("\\.")[1].equals("jpg") ||
+                    uriString.split("\\.")[1].equals("png")) {
+                OutputStream outputStream = clientSocket.getOutputStream();
+                File file = new File("src/main/resources/public/" + uriString);
+                try {
+                    BufferedImage bufferedImage = ImageIO.read(file);
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+
+                    ImageIO.write(bufferedImage, uriString.split("\\.")[1], byteArrayOutputStream);
+                    outputLine = getImageResponseHeader("");
+                    dataOutputStream.writeBytes(outputLine);
+                    dataOutputStream.write(byteArrayOutputStream.toByteArray());
+                    System.out.println(outputLine);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    responseBody = getFile(uriString);
+                    outputLine = getResponse(responseBody);
+                }
             } else {
                 outputLine = getIndexResponse();
             }
@@ -70,96 +88,62 @@ public class HttpServer {
         serverSocket.close();
     }
 
-
     /**
-     * Obtiene información de una película desde el caché o desde el servicio externo.
+     * Método para obtener un archivo estático
      *
-     * @param movieTitle Título de la película a buscar.
-     * @return Respuesta HTTP con la información de la película.
-     * @throws IOException Si ocurre un error al obtener la información.
+     * @param route String de la ruta para buscar fichero
+     * @return los datos del fichero en un String
      */
-    private static String getHello(String movieTitle) throws IOException {
-        if (cache.containsKey(movieTitle)) {
-            return "HTTP/1.1 200 OK"
-                    + "Content-Type: text/html\r\n"
-                    + "\r\n" + cache.get(movieTitle);
-        } else {
-            String movieData = httpConnection.getMovieData(movieTitle);
-            cache.put(movieTitle, formatMovieData(movieData));
-            return "HTTP/1.1 200 OK"
-                    + "Content-Type: text/html\r\n"
-                    + "\r\n" + formatMovieData(movieData);
+    public static String getFile(String route) {
+        Path file = FileSystems.getDefault().getPath("src/main/resources/public", route);
+        String web = "";
+        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                web += line + "\n";
+            }
+        } catch (IOException x) {
+            web = "Not Found";
         }
-    }
-    /**
-     * Retorna una página HTML con el formulario de búsqueda de películas.
-     *
-     * @return Respuesta HTTP con la página de inicio.
-     */
-
-    private static String formatMovieData(String movieData) {
-        JsonObject jsonObject = JsonParser.parseString(movieData).getAsJsonObject();
-
-        String title = jsonObject.get("Title").getAsString();
-        String year = jsonObject.get("Year").getAsString();
-        String director = jsonObject.get("Director").getAsString();
-        String actors = jsonObject.get("Actors").getAsString();
-        String plot = jsonObject.get("Plot").getAsString();
-        String posterUrl = jsonObject.get("Poster").getAsString();
-
-        return "<h2>Movie information</h2>"
-                + "<p><strong>Title:</strong> " + title + "</p>"
-                + "<p><strong>Year:</strong> " + year + "</p>"
-                + "<p><strong>Director:</strong> " + director + "</p>"
-                + "<p><strong>Actors:</strong> " + actors + "</p>"
-                + "<p><strong>Plot:</strong> " + plot+ "</p>"
-                + "<img src=\"" + posterUrl + "\" alt=\"Póster de la película\">";
+        return web;
     }
 
-    public static String getIndexResponse() {
-        String response = "HTTP/1.1 200 OK"
-                + "Content-Type: text/html\r\n"
-                + "\r\n"
-                + "<!DOCTYPE html>\n" +
+    private static String getIndexResponse() {
+        return "<!DOCTYPE html>\n" +
                 "<html>\n" +
                 "    <head>\n" +
-                "        <title>Buscador de Películas</title>\n" +
+                "        <title>APLICACIONES DISTRIBUIDAS EN INTERNET</title>\n" +
                 "        <meta charset=\"UTF-8\">\n" +
                 "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
                 "    </head>\n" +
                 "    <body>\n" +
-                "        <h1>\n" +
-                "Movie Search</h1>\n" +
-                "        <div>\n" +
-                "            <form action=\"/hello\">\n" +
-                "                <div><label for=\"name\">Movie:</label><br>\n" +
-                "                <input type=\"text\" id=\"name\" name=\"name\"></div><br><br>\n" +
-                "                <input type=\"button\" value=\"Search\" onclick=\"loadGetMsg()\">\n" +
-                "            </form>\n" +
-                "            <div id=\"getrespmsg\"></div>\n" +
-                "        </div>\n" +
-                "\n" +
+                "        <h1>TALLER DISENO Y ESTRUCTURACION DE APLICACIONES DISTRIBUIDAS EN INTERNET</h1>\n" +
+                "        <form id=\"redirectForm\">\n" +
+                "            <input type=\"text\" id=\"urlInput\" placeholder=\"Introduce la ruta\">\n" +
+                "            <button type=\"button\" onclick=\"redirectToURL()\">Buscar</button>\n" +
+                "        </form>\n" +
                 "        <script>\n" +
-                "            function loadGetMsg() {\n" +
-                "                let nameVar = document.getElementById(\"name\").value;\n" +
-                "                const xhttp = new XMLHttpRequest();\n" +
-                "                xhttp.onload = function() {\n" +
-                "                    document.getElementById(\"getrespmsg\").innerHTML =\n" +
-                "                    this.responseText;\n" +
-                "                }\n" +
-                "                xhttp.open(\"GET\", \"/movie?title=\"+nameVar);\n" +
-                "                xhttp.send();\n" +
+                "            function redirectToURL() {\n" +
+                "                var url = document.getElementById(\"urlInput\").value;\n" +
+                "                window.location.href = url;\n" +
                 "            }\n" +
-                "            document.getElementById(\"name\").addEventListener(\"keydown\", function(event) {\n" +
-                "                if (event.key === \"Enter\") {\n" +
-                "                    event.preventDefault();\n" +
-                "                    loadGetMsg();\n" +
-                "                }\n" +
-                "            });\n" +
                 "        </script>\n" +
                 "    </body>\n" +
                 "</html>";
-        return response;
     }
 
+    private static String getResponse(String responseBody) {
+        return "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: text/html\r\n" +
+                "\r\n" +
+                responseBody;
+    }
+
+    private static String getImageResponseHeader(String responseBody) {
+        System.out.println("response Body" + responseBody);
+        return "HTTP/1.1 200 OK \r\n"
+                + "Content-Type: image/jpg \r\n"
+                + "\r\n";
+
+    }
 }

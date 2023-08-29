@@ -1,5 +1,5 @@
-# TALLER 1: APLICACIONES DISTRIBUIDAS (HTTP, SOCKETS, HTML, JS, MAVEN, GIT) - Camilo Cantillo T
-## Buscador de Películas - App web para consultar información de películas de cine.
+# TALLER DISEÑO Y ESTRUCTURACIÓN DE APLICACIONES DISTRIBUIDAS EN INTERNET - Camilo Cantillo T
+## En este taller usted explorará la arquitectura de las aplicaciones distribuidas. Concretamente, exploraremos la arquitectura de los servidores web y el protocolo http sobre el que están soportados.
 
 ### Inicialización:
 Estas instrucciones te ayudarán a obtener una copia del proyecto en funcionamiento en tu máquina local para desarrollo y pruebas. Consulta la sección de "Despliegue" para obtener notas sobre cómo implementar el proyecto en un sistema en vivo.
@@ -16,28 +16,33 @@ Cosas que necesitas instalar y cómo hacerlo.
 1. Para tener una copia en local del repositorio debemos abrir la termial y estar ubicado en la carpeta que queremos clonar el repositorio, seguido a esto utilizamos el comando:
 
 ```
-https://github.com/CamiloCanta/AREP_lab1
+https://github.com/CamiloCanta/AREP_lab2
 ```
 
 2. Preferencialmente, solemos abrir el proyecto en una IDE, por lo cual abriremos el proyecto en esta misma, abriremos la terminal y ejecutamos el codigo:
 ```
+mvn package
 mvn exec:java
+o
+mvn exec:java -"Dexec.mainClass"="escuelaing.arep.HttpServer
 ```
 3. Ya ejecutada la aplicación, procedemos a abrir el navegador de nuestra preferencia y usamos la siguiente URL:
 
 ```
 http://localhost:35000
 ```
-4. Una vez en la página podemos realizar busquedas de las peliculas:
+4. Una vez en la página podemos realizar busquedas de los archivos(importante darle el botón buscar y no presionar enter):
 
    
-![img.png](img.png)
+![img.png](src/images/img.png)
 
 
 5. Así se verá cuando se realice una consulta:
 
    
-![img_1.png](img_1.png)
+![img_2.png](src/images/img_2.png)
+
+![img_3.png](src/images/img_3.png)
 
 ### Correr los tests
 En nuestra IDE usamos el siguiente codigo para correr las pruebas unitarias:
@@ -55,18 +60,7 @@ mvn javadoc:javadoc
 - Java
 - Maven
 - Git
-- OMDAPI - API externa de consulta
 
 ### Autor:
 Camilo Andres Cantillo Tatis
-
-### Extensibilidad:
-1. Incorporando Diferentes Fuentes de Información:
-
-Me gustaría hacer que nuestro buscador de películas sea aún más versátil al permitir que los usuarios obtengan información de diferentes fuentes. En lugar de depender únicamente de una API como OMDB, podríamos diseñar nuestro sistema para que pueda conectarse a otras APIs o incluso a una base de datos interna. Para lograr esto, podríamos crear una estructura modular que admita múltiples proveedores de datos. Cada proveedor podría implementar una interfaz común y se encargaría de recuperar los detalles de las películas de su respectiva fuente. Esto nos brindaría la flexibilidad de agregar fácilmente nuevas fuentes de información en el futuro.
-
-2. Potenciando las Búsquedas Avanzadas:
-
-Una idea que me emociona es expandir nuestra funcionalidad de búsqueda para que los usuarios puedan encontrar películas de manera más precisa. Además de buscar por título, podríamos permitir búsquedas avanzadas por género, año de lanzamiento, director y actores. Esto requeriría que ajustemos nuestra lógica de servidor para manejar diferentes parámetros de búsqueda y generar consultas más específicas. Así, los usuarios podrían encontrar películas que se adapten mejor a sus preferencias y descubrir nuevas joyas cinematográficas de manera más eficiente.
-
 
