@@ -1,6 +1,7 @@
 package edu.escuelaing.arep.app.controller;
 
 
+import edu.escuelaing.arep.app.controller.componentes.RequestMapping;
 
 public class Controller {
     @RequestMapping(value = "/hello")

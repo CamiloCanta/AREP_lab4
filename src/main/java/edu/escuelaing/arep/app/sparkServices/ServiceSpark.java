@@ -31,7 +31,7 @@ public class ServiceSpark{
 
     public static String setCache (String path){
         Answer ans = new Answer();
-        String path2 = "src/main/resource"+path;
+        String path2 = "src/main/resources"+path;
         byte[] content = new byte[0];
         try {
             Path file = Paths.get(path2);

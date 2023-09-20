@@ -1,6 +1,6 @@
 package edu.escuelaing.arep.app;
-import edu.escuelaing.arep.app.controller.Component;
-import edu.escuelaing.arep.app.controller.RequestMapping;
+import edu.escuelaing.arep.app.controller.componentes.Component;
+import edu.escuelaing.arep.app.controller.componentes.RequestMapping;
 import edu.escuelaing.arep.app.sparkServices.Answer;
 
 import java.net.*;
@@ -21,7 +21,7 @@ public class HttpServer {
     private Map<String, Method> services = new HashMap<>();
     private Answer ans;
     private static OutputStream outputStream = null;
-    private final String direccion = "edu/eci/arep/app/controller";
+    private final String direccion = "edu/escuelaing/arep/app/controller";
 
     private HttpServer(){}
 

@@ -2,6 +2,8 @@ package edu.escuelaing.arep.app.controller;
 
 
 import edu.escuelaing.arep.app.HttpServer;
+import edu.escuelaing.arep.app.controller.componentes.Component;
+import edu.escuelaing.arep.app.controller.componentes.RequestMapping;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

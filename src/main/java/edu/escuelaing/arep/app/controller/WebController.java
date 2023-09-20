@@ -1,5 +1,8 @@
 package edu.escuelaing.arep.app.controller;
 
+import edu.escuelaing.arep.app.controller.componentes.Component;
+import edu.escuelaing.arep.app.controller.componentes.RequestMapping;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +16,7 @@ public class WebController {
     public static String index() {
         return "HTTP/1.1 200 OK\r\n" +
                 "Content-type: text/html\r\n" +
-                "\r\n" + body("index.html");
+                "\r\n" + body("taller.html");
     }
 
     private static String body(String extention){
@@ -38,7 +41,7 @@ public class WebController {
     public static String indexjs() {
         return "HTTP/1.1 200 OK\r\n" +
                 "Content-type: text/javascript\r\n" +
-                "\r\n" + body("main.js");
+                "\r\n" + body("javascript.js");
     }
 
 
