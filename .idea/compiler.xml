@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="distributedApplications" />
         <module name="AREP_lab1" />
+        <module name="AREP_lab4" />
         <module name="AREP_lab2" />
       </profile>
     </annotationProcessing>

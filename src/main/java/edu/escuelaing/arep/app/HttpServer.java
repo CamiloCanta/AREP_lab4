@@ -1,19 +1,51 @@
 package edu.escuelaing.arep.app;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import edu.escuelaing.arep.app.controller.Component;
+import edu.escuelaing.arep.app.controller.RequestMapping;
+import edu.escuelaing.arep.app.sparkServices.Answer;
+
+import java.net.*;
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.*;
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+
+import java.util.Arrays;
+import java.util.HashMap;
+
+
+
 
 public class HttpServer {
 
-    public static void main(String[] args) throws IOException {
+    private static HttpServer instance = new HttpServer();
+    private Map<String, Method> services = new HashMap<>();
+    private Answer ans;
+    private static OutputStream outputStream = null;
+    private final String direccion = "edu/eci/arep/app/controller";
 
+    private HttpServer(){}
+
+    public static HttpServer getInstance(){
+        return instance;
+    }
+
+
+    public void run(String[] args) throws IOException, ClassNotFoundException, IllegalAccessException,  InvocationTargetException {
+        List<Class<?>> classes = getClasses();
+        for (Class<?> clasS:classes){
+            if(clasS.isAnnotationPresent(Component.class)){
+                Class<?> c = Class.forName(clasS.getName());
+                Method[] m = c.getMethods();
+                for (Method me: m){
+                    if(me.isAnnotationPresent(RequestMapping.class)){
+                        String key = me.getAnnotation(RequestMapping.class).value();
+                        services.put(key,me);
+                    }
+                }
+            }
+
+        }
+        System.out.println("Methods: " + services);
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(35000);
@@ -21,129 +53,129 @@ public class HttpServer {
             System.err.println("Could not listen on port: 35000.");
             System.exit(1);
         }
-        Socket clientSocket = null;
-        while (!serverSocket.isClosed()) {
+
+        boolean running = true;
+        while(running) {
+            Socket clientSocket = null;
             try {
-                System.out.println("Operando APLICACIONES DISTRIBUIDAS EN INTERNET ...");
+                System.out.println("Listo para recibir ...");
                 clientSocket = serverSocket.accept();
             } catch (IOException e) {
                 System.err.println("Accept failed.");
                 System.exit(1);
             }
-
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(
-                            clientSocket.getInputStream()));
-            String inputLine, outputLine;
-            boolean firstLine = true;
-            String uriString = "";
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            String inputLine, outputLine = null;
+            String title = "";
+            boolean first_line = true;
+            String request = "/simple";
+            outputStream = clientSocket.getOutputStream();
             while ((inputLine = in.readLine()) != null) {
                 System.out.println("Received: " + inputLine);
-                if (firstLine) {
-                    firstLine = false;
-                    uriString = inputLine.split(" ")[1];
+                if(first_line){
+                    request = inputLine.split(" ")[1];
+                    first_line = false;
 
+                }
+                if(inputLine.contains("title?name")){
+                    String[] firstSplit = inputLine.split("=");
+                    title = (firstSplit[1].split("HTTP"))[0];
                 }
                 if (!in.ready()) {
                     break;
                 }
             }
-            System.out.println("URI: " + uriString);
-            String responseBody = "";
-
-            if (uriString != null && uriString.equals("/")) {
-                responseBody = getIndexResponse();
-                outputLine = getResponse(responseBody);
-            } else if (uriString != null && !getFile(uriString).equals("Not Found")) {
-                responseBody = getFile(uriString);
-                outputLine = getResponse(responseBody);
-            } else if (uriString != null && uriString.split("\\.")[1].equals("jpg") ||
-                    uriString.split("\\.")[1].equals("png")) {
-                OutputStream outputStream = clientSocket.getOutputStream();
-                File file = new File("src/main/resources/public/" + uriString);
-                try {
-                    BufferedImage bufferedImage = ImageIO.read(file);
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-                    ImageIO.write(bufferedImage, uriString.split("\\.")[1], byteArrayOutputStream);
-                    outputLine = getImageResponseHeader("");
-                    dataOutputStream.writeBytes(outputLine);
-                    dataOutputStream.write(byteArrayOutputStream.toByteArray());
-                    System.out.println(outputLine);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    responseBody = getFile(uriString);
-                    outputLine = getResponse(responseBody);
+            if (!Objects.equals(request, "/")) {
+                System.out.println(request);
+                if(services.containsKey(request)){
+                    outputLine = services.get(request).invoke(null).toString();
                 }
-            } else {
-                outputLine = getIndexResponse();
+            }else {
+                outputLine = "HTTP/1.1 200 OK\r\n" +
+                        "Content-type: text/html\r\n" +
+                        "\r\n" +
+                        "<!DOCTYPE html>"
+                        + "<html>"
+                        + "<head>"
+                        + "<meta charset=\"UTF-8\">"
+                        + "<title>404</title>\n"
+                        + "</head>"
+                        + "<body>"
+                        + "Hola\r\n"
+                        + "este es el laboratorio 4 de AREP"
+                        + "</body>"
+                        + "</html>";
             }
             out.println(outputLine);
             out.close();
             in.close();
+            clientSocket.close();
         }
-        clientSocket.close();
         serverSocket.close();
     }
 
-    /**
-     * Método para obtener un archivo estático
-     *
-     * @param route String de la ruta para buscar fichero
-     * @return los datos del fichero en un String
-     */
-    public static String getFile(String route) {
-        Path file = FileSystems.getDefault().getPath("src/main/resources/public", route);
-        String web = "";
-        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                web += line + "\n";
-            }
-        } catch (IOException x) {
-            web = "Not Found";
+
+    private static String table(String res){
+        String[] info = res.split(":");
+        String tabla = "<table> \n";
+        for (int i = 0;i<(info.length);i++) {
+            String[] temporalAnswer = info[i].split(",");
+            tabla+="<td>" + Arrays.toString(Arrays.copyOf(temporalAnswer, temporalAnswer.length - 1)).replace("[","").replace("]","").replace("}","") + "</td>\n</tr>\n";
+            tabla+="<tr>\n<td>" +  temporalAnswer[temporalAnswer.length-1].replace("{","").replace("[","") + "</td>\n";
         }
-        return web;
-    }
-
-    private static String getIndexResponse() {
-        return "<!DOCTYPE html>\n" +
-                "<html>\n" +
-                "    <head>\n" +
-                "        <title>APLICACIONES DISTRIBUIDAS EN INTERNET</title>\n" +
-                "        <meta charset=\"UTF-8\">\n" +
-                "        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-                "    </head>\n" +
-                "    <body>\n" +
-                "        <h1>TALLER DISENO Y ESTRUCTURACION DE APLICACIONES DISTRIBUIDAS EN INTERNET</h1>\n" +
-                "        <form id=\"redirectForm\">\n" +
-                "            <input type=\"text\" id=\"urlInput\" placeholder=\"Introduce la ruta\">\n" +
-                "            <button type=\"button\" onclick=\"redirectToURL()\">Buscar</button>\n" +
-                "        </form>\n" +
-                "        <script>\n" +
-                "            function redirectToURL() {\n" +
-                "                var url = document.getElementById(\"urlInput\").value;\n" +
-                "                window.location.href = url;\n" +
-                "            }\n" +
-                "        </script>\n" +
-                "    </body>\n" +
-                "</html>";
-    }
-
-    private static String getResponse(String responseBody) {
-        return "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/html\r\n" +
-                "\r\n" +
-                responseBody;
-    }
-
-    private static String getImageResponseHeader(String responseBody) {
-        System.out.println("response Body" + responseBody);
-        return "HTTP/1.1 200 OK \r\n"
-                + "Content-Type: image/jpg \r\n"
-                + "\r\n";
+        tabla += "</table>";
+        return tabla;
 
     }
+
+    public OutputStream getOutputStream() {
+        return outputStream;
+    }
+
+
+
+    private static String answer(String title) throws IOException {
+        return "HTTP/1.1 200 OK\r\n"
+                + "Content-Type: application/json\r\n"
+                + "\r\n" +
+                "<style>\n" +
+                "table, th, td {\n" +
+                "  border:1px solid black;\n" +
+                "}\n" +
+                "</style>"+
+                table(Cache.inMemory(title));
+    }
+
+    private List<Class<?>> getClasses(){
+        List<Class<?>> classes = new ArrayList<>();
+        try{
+            for (String cp: classPaths()){
+                File file = new File(cp + "/" + direccion);
+                if(file.exists() && file.isDirectory()){
+                    for (File cf: Objects.requireNonNull(file.listFiles())){
+                        if(cf.isFile() && cf.getName().endsWith(".class")){
+                            String rootTemp = direccion.replace("/",".");
+                            String className = rootTemp+"."+cf.getName().replace(".class","");
+                            Class<?> clasS =  Class.forName(className);
+                            classes.add(clasS);
+                        }
+                    }
+                }
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return classes;
+    }
+
+
+
+    private ArrayList<String> classPaths(){
+        String classPath = System.getProperty("java.class.path");
+        String[] classPaths =  classPath.split(System.getProperty("path.separator"));
+        return new ArrayList<>(Arrays.asList(classPaths));
+    }
+
+
 }
